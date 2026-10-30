@@ -3,155 +3,123 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Ajedrez Físico Asistido</title>
+  <title>Ajedrez Físico Asistido - Valeshnicov</title>
   
-  <!-- Estilos e interfaz mobile-first -->
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background-color: #121212;
-      color: #ffffff;
+      background-color: #0f172a;
+      color: #f8fafc;
       display: flex;
       flex-direction: column;
       align-items: center;
       min-height: 100vh;
       padding: 10px;
     }
-    h1 { font-size: 1.2rem; margin-bottom: 8px; text-align: center; color: #f0c040; }
-    
-    .camera-container {
+    header { text-align: center; margin-bottom: 10px; }
+    h1 { font-size: 1.3rem; color: #fbbf24; }
+    p.subtitle { font-size: 0.8rem; color: #94a3b8; }
+    .camera-wrapper {
       position: relative;
       width: 100%;
-      max-width: 400px;
-      height: 280px;
+      max-width: 450px;
+      aspect-ratio: 1;
       background: #000;
       border-radius: 12px;
       overflow: hidden;
-      border: 2px solid #333;
-      margin-bottom: 12px;
+      border: 2px solid #334155;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
     }
-    
-    video {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
+    video { width: 100%; height: 100%; object-fit: cover; }
+    canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: auto; }
+    .instructions-bar {
+      position: absolute; bottom: 0; left: 0; right: 0;
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(4px);
+      color: #38bdf8; font-size: 0.75rem; padding: 6px 12px;
+      text-align: center; border-top: 1px solid rgba(255,255,255,0.1);
     }
-    
-    .board-overlay {
-      position: absolute;
-      top: 10%;
-      left: 10%;
-      width: 80%;
-      height: 80%;
-      border: 2px dashed #00ffcc;
-      box-shadow: 0 0 15px rgba(0, 255, 204, 0.4);
-      pointer-events: none;
-      display: flex;
-      justify-content: center;
-      align-items: center;
+    .status-card {
+      width: 100%; max-width: 450px; background: #1e293b;
+      padding: 12px; border-radius: 10px; margin: 10px 0;
+      border-left: 4px solid #fbbf24; display: flex;
+      justify-content: space-between; align-items: center;
     }
-    
-    .board-overlay::after {
-      content: "Alinea tu tablero de cristal aquí";
-      color: #00ffcc;
-      font-size: 0.75rem;
-      background: rgba(0, 0, 0, 0.7);
-      padding: 4px 8px;
-      border-radius: 4px;
+    .status-info h2 { font-size: 1rem; color: #f8fafc; }
+    .status-info p { font-size: 0.85rem; color: #38bdf8; margin-top: 2px; font-weight: 600; }
+    .virtual-board-container {
+      width: 100%; max-width: 450px; background: #1e293b;
+      border-radius: 10px; padding: 10px; margin-bottom: 12px;
     }
-
-    .status-panel {
-      width: 100%;
-      max-width: 400px;
-      background: #1e1e1e;
-      padding: 12px;
-      border-radius: 8px;
-      text-align: center;
-      margin-bottom: 12px;
-      border-left: 4px solid #f0c040;
+    .virtual-board-header { font-size: 0.8rem; color: #94a3b8; margin-bottom: 8px; text-align: center; }
+    .chess-board {
+      display: grid; grid-template-columns: repeat(8, 1fr);
+      grid-template-rows: repeat(8, 1fr); aspect-ratio: 1;
+      width: 100%; border: 2px solid #475569; border-radius: 6px; overflow: hidden;
     }
-
-    .status-panel h2 { font-size: 1rem; color: #fff; }
-    .status-panel p { font-size: 0.9rem; color: #aaa; margin-top: 4px; }
-
-    .controls {
-      display: flex;
-      gap: 10px;
-      width: 100%;
-      max-width: 400px;
-      margin-bottom: 12px;
+    .square {
+      display: flex; justify-content: center; align-items: center;
+      font-size: 1.6rem; cursor: pointer; user-select: none; position: relative;
     }
-
+    .square.light { background-color: #e2e8f0; color: #0f172a; }
+    .square.dark { background-color: #475569; color: #f8fafc; }
+    .square.selected { background-color: #f59e0b !important; }
+    .controls { display: flex; gap: 8px; width: 100%; max-width: 450px; margin-bottom: 20px; }
     button {
-      flex: 1;
-      padding: 12px;
-      border: none;
-      border-radius: 8px;
-      font-weight: bold;
-      font-size: 0.9rem;
-      cursor: pointer;
-      transition: background 0.2s;
+      flex: 1; padding: 10px; border: none; border-radius: 8px;
+      font-weight: 600; font-size: 0.85rem; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; gap: 6px;
     }
-
-    .btn-primary { background-color: #2563eb; color: white; }
-    .btn-secondary { background-color: #374151; color: white; }
-    
-    .move-input-box {
-      width: 100%;
-      max-width: 400px;
-      display: flex;
-      gap: 8px;
-    }
-
-    input[type="text"] {
-      flex: 1;
-      padding: 12px;
-      border-radius: 8px;
-      border: 1px solid #444;
-      background: #222;
-      color: #fff;
-      font-size: 1rem;
-      text-transform: lowercase;
-    }
+    .btn-secondary { background: #334155; color: white; }
+    .btn-warning { background: #d97706; color: white; }
   </style>
-
-  <!-- Motores de ajedrez e integración CDN -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
 </head>
 <body>
-
-  <h1>Ajedrez Físico Asistido</h1>
-
-  <!-- Vista previa de la cámara -->
-  <div class="camera-container">
+  <header>
+    <h1>Ajedrez Asistido (Modo Aprendices)</h1>
+    <p class="subtitle">Alineación con coordenadas en tiempo real</p>
+  </header>
+  <div class="camera-wrapper">
     <video id="webcam" autoplay playsinline muted></video>
-    <div class="board-overlay"></div>
+    <canvas id="overlayCanvas"></canvas>
+    <div class="instructions-bar" id="instructionText">
+      Toca las 4 esquinas del tablero físico en la pantalla para calibrar las coordenadas.
+    </div>
   </div>
-
-  <!-- Panel de estado e instrucciones por voz -->
-  <div class="status-panel">
-    <h2 id="turn-status">Tu turno (Blancas)</h2>
-    <p id="ai-response">Mueve una pieza física y regístrala abajo.</p>
+  <div class="status-card">
+    <div class="status-info">
+      <h2 id="turnText">Turno: Blancas</h2>
+      <p id="lastMoveText">Alinea tu tablero e inicia la partida</p>
+    </div>
+    <button class="btn-warning" style="flex:0; padding: 8px 12px;" onclick="resetCorners()">Recalibrar</button>
   </div>
-
-  <!-- Controles manuales rápidos para jugadas -->
-  <div class="move-input-box">
-    <input type="text" id="user-move" placeholder="Tu jugada (ej. e2e4, g1f3)" maxlength="5">
-    <button class="btn-primary" onclick="makeUserMove()">Mover</button>
+  <div class="virtual-board-container">
+    <div class="virtual-board-header">Tablero Táctil de Control (Toca pieza y destino)</div>
+    <div id="virtualBoard" class="chess-board"></div>
   </div>
-
-  <div class="controls" style="margin-top: 10px;">
-    <button class="btn-secondary" onclick="resetGame()">Reiniciar Partida</button>
+  <div class="controls">
+    <button class="btn-secondary" onclick="restartGame()">Reiniciar Partida</button>
   </div>
-
   <script>
     const game = new Chess();
     const video = document.getElementById('webcam');
-    const turnStatus = document.getElementById('turn-status');
-    const aiResponse = document.getElementById('ai-response');
+    const canvas = document.getElementById('overlayCanvas');
+    const ctx = canvas.getContext('2d');
+    const instructionText = document.getElementById('instructionText');
+    const turnText = document.getElementById('turnText');
+    const lastMoveText = document.getElementById('lastMoveText');
+    const virtualBoard = document.getElementById('virtualBoard');
 
-    // 1. Iniciar cámara del celular
+    let corners = [];
+    let selectedSquare = null;
+
+    const pieceSymbols = {
+      'p': '♟', 'r': '♜', 'n': '♞', 'b': '♝', 'q': '♛', 'k': '♚',
+      'P': '♙', 'R': '♖', 'N': '♘', 'B': '♗', 'Q': '♕', 'K': '♔'
+    };
+
     async function initCamera() {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({
@@ -159,81 +127,242 @@
           audio: false
         });
         video.srcObject = stream;
+        video.onloadedmetadata = () => {
+          resizeCanvas();
+          setDefaultCorners();
+          requestAnimationFrame(drawOverlay);
+        };
       } catch (err) {
-        console.error("Error al acceder a la cámara: ", err);
-        aiResponse.innerText = "No se pudo acceder a la cámara. Permite los permisos.";
+        instructionText.innerText = "Error: Activa los permisos de la cámara en el navegador.";
       }
     }
 
-    // 2. Síntesis de Voz (Text-to-Speech en español)
-    function speak(text) {
+    function resizeCanvas() {
+      canvas.width = canvas.clientWidth;
+      canvas.height = canvas.clientHeight;
+    }
+
+    function setDefaultCorners() {
+      const w = canvas.width;
+      const h = canvas.height;
+      const pad = 40;
+      corners = [
+        { x: pad, y: pad },
+        { x: w - pad, y: pad },
+        { x: w - pad, y: h - pad },
+        { x: pad, y: h - pad }
+      ];
+    }
+
+    function resetCorners() {
+      corners = [];
+      instructionText.innerText = "Toca la esquina superior izquierda del tablero.";
+    }
+
+    canvas.addEventListener('click', (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+
+      if (corners.length < 4) {
+        corners.push({ x, y });
+        const labels = ["superior derecha", "inferior derecha", "inferior izquierda", "Completado"];
+        if (corners.length < 4) {
+          instructionText.innerText = `Ahora toca la esquina ${labels[corners.length - 1]}.`;
+        } else {
+          instructionText.innerText = "¡Calibración lista! Coordenadas proyectadas.";
+        }
+      } else {
+        let nearestIdx = -1;
+        let minDist = 30;
+        corners.forEach((c, idx) => {
+          const dist = Math.hypot(c.x - x, c.y - y);
+          if (dist < minDist) {
+            minDist = dist;
+            nearestIdx = idx;
+          }
+        });
+        if (nearestIdx !== -1) {
+          corners[nearestIdx] = { x, y };
+        }
+      }
+    });
+
+    function drawOverlay() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      if (corners.length === 4) {
+        ctx.strokeStyle = '#38bdf8';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(corners[0].x, corners[0].y);
+        for (let i = 1; i < 4; i++) ctx.lineTo(corners[i].x, corners[i].y);
+        ctx.closePath();
+        ctx.stroke();
+
+        const files = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
+        const ranks = ['8', '7', '6', '5', '4', '3', '2', '1'];
+
+        for (let r = 0; r < 8; r++) {
+          for (let f = 0; f < 8; f++) {
+            const u = (f + 0.5) / 8;
+            const v = (r + 0.5) / 8;
+            const pos = getPerspectivePoint(u, v, corners);
+
+            if (r === 7) {
+              const labelPos = getPerspectivePoint(u, 0.96, corners);
+              ctx.fillStyle = '#fbbf24';
+              ctx.font = 'bold 12px sans-serif';
+              ctx.textAlign = 'center';
+              ctx.fillText(files[f].toUpperCase(), labelPos.x, labelPos.y);
+            }
+            if (f === 0) {
+              const labelPos = getPerspectivePoint(0.04, v, corners);
+              ctx.fillStyle = '#fbbf24';
+              ctx.font = 'bold 12px sans-serif';
+              ctx.textAlign = 'center';
+              ctx.fillText(ranks[r], labelPos.x, labelPos.y + 4);
+            }
+
+            ctx.fillStyle = 'rgba(56, 189, 248, 0.25)';
+            ctx.beginPath();
+            ctx.arc(pos.x, pos.y, 2, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        }
+      }
+
+      corners.forEach((c) => {
+        ctx.fillStyle = '#f59e0b';
+        ctx.beginPath();
+        ctx.arc(c.x, c.y, 6, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      requestAnimationFrame(drawOverlay);
+    }
+
+    function getPerspectivePoint(u, v, pts) {
+      const topX = pts[0].x + u * (pts[1].x - pts[0].x);
+      const topY = pts[0].y + u * (pts[1].y - pts[0].y);
+      const botX = pts[3].x + u * (pts[2].x - pts[3].x);
+      const botY = pts[3].y + u * (pts[2].y - pts[3].y);
+      return {
+        x: topX + v * (botX - topX),
+        y: topY + v * (botY - topY)
+      };
+    }
+
+    function renderVirtualBoard() {
+      virtualBoard.innerHTML = '';
+      const board = game.board();
+      const files = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
+
+      for (let r = 0; r < 8; r++) {
+        for (let f = 0; f < 8; f++) {
+          const squareName = files[f] + (8 - r);
+          const squareEl = document.createElement('div');
+          const isLight = (r + f) % 2 === 0;
+          squareEl.className = `square ${isLight ? 'light' : 'dark'}`;
+          squareEl.dataset.square = squareName;
+
+          const piece = board[r][f];
+          if (piece) {
+            const pieceKey = piece.color === 'w' ? piece.type.toUpperCase() : piece.type;
+            squareEl.innerText = pieceSymbols[pieceKey] || '';
+          }
+
+          if (selectedSquare === squareName) {
+            squareEl.classList.add('selected');
+          }
+
+          squareEl.addEventListener('click', () => handleSquareClick(squareName));
+          virtualBoard.appendChild(squareEl);
+        }
+      }
+    }
+
+    function handleSquareClick(square) {
+      if (!selectedSquare) {
+        const piece = game.get(square);
+        if (piece && piece.color === game.turn()) {
+          selectedSquare = square;
+          renderVirtualBoard();
+        }
+      } else {
+        const move = game.move({
+          from: selectedSquare,
+          to: square,
+          promotion: 'q'
+        });
+
+        if (move !== null) {
+          selectedSquare = null;
+          renderVirtualBoard();
+          updateStatus();
+          speakMove(`Jugaste ${move.piece.toUpperCase()} a ${square}`);
+          
+          if (!game.game_over()) {
+            turnText.innerText = "Turno: Rival pensando...";
+            setTimeout(makeAIMove, 700);
+          }
+        } else {
+          selectedSquare = null;
+          renderVirtualBoard();
+        }
+      }
+    }
+
+    function makeAIMove() {
+      const moves = game.moves({ verbose: true });
+      if (moves.length === 0) return;
+
+      const randomMove = moves[Math.floor(Math.random() * moves.length)];
+      game.move(randomMove);
+      renderVirtualBoard();
+      updateStatus();
+
+      const voiceMsg = `Rival mueve de ${randomMove.from} a ${randomMove.to}`;
+      lastMoveText.innerText = `Rival movió: ${randomMove.from} → ${randomMove.to}`;
+      speakMove(voiceMsg);
+    }
+
+    function updateStatus() {
+      if (game.in_checkmate()) {
+        turnText.innerText = "¡Jaque Mate!";
+        speakMove("Jaque mate. Fin de la partida.");
+      } else if (game.in_draw()) {
+        turnText.innerText = "Tablas (Empate)";
+      } else {
+        turnText.innerText = game.turn() === 'w' ? "Turno: Tu turno (Blancas)" : "Turno: Rival (Negras)";
+      }
+    }
+
+    function speakMove(text) {
       if ('speechSynthesis' in window) {
         window.speechSynthesis.cancel();
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.lang = 'es-ES';
-        utterance.rate = 0.9;
+        utterance.rate = 0.95;
         window.speechSynthesis.speak(utterance);
       }
     }
 
-    // 3. Procesar jugada del usuario
-    function makeUserMove() {
-      const input = document.getElementById('user-move');
-      const moveStr = input.value.trim().toLowerCase();
-      
-      if (!moveStr) return;
-
-      const move = game.move({
-        from: moveStr.substring(0, 2),
-        to: moveStr.substring(2, 4),
-        promotion: 'q'
-      });
-
-      if (move === null) {
-        alert("Jugada no válida. Usa notación básica (ej: e2e4)");
-        return;
-      }
-
-      input.value = '';
-      turnStatus.innerText = "Pensando respuesta...";
-      
-      // Simulación de respuesta de la computadora / motor
-      setTimeout(makeAIMove, 600);
-    }
-
-    // 4. Generar jugada del rival (IA) y anunciar por altavoz
-    function makeAIMove() {
-      const moves = game.moves({ verbose: true });
-      if (game.game_over()) {
-        turnStatus.innerText = "Fin de la partida";
-        speak("La partida ha terminado.");
-        return;
-      }
-
-      // Elige una jugada aleatoria de las válidas (para prueba rápida)
-      const randomMove = moves[Math.floor(Math.random() * moves.length)];
-      game.move(randomMove);
-
-      const fromPiece = randomMove.from;
-      const toPiece = randomMove.to;
-      const textToSpeak = `Mi turno: Mueve de ${fromPiece} a ${toPiece}`;
-
-      turnStatus.innerText = `Rival movió: ${fromPiece} a ${toPiece}`;
-      aiResponse.innerText = `Ubica la pieza en tu tablero real.`;
-      
-      // Anuncio auditivo
-      speak(textToSpeak);
-    }
-
-    function resetGame() {
+    function restartGame() {
       game.reset();
-      turnStatus.innerText = "Tu turno (Blancas)";
-      aiResponse.innerText = "Mueve una pieza física y regístrala abajo.";
-      speak("Partida reiniciada. Tu mueves.");
+      selectedSquare = null;
+      renderVirtualBoard();
+      turnText.innerText = "Turno: Blancas";
+      lastMoveText.innerText = "Partida reiniciada";
+      speakMove("Nueva partida lista. Tu mueves.");
     }
 
-    // Inicializar al cargar
-    window.addEventListener('load', initCamera);
+    window.addEventListener('load', () => {
+      initCamera();
+      renderVirtualBoard();
+    });
+
+    window.addEventListener('resize', resizeCanvas);
   </script>
 </body>
-      </html>
+</html>
